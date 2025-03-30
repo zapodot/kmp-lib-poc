@@ -1,7 +1,7 @@
 [versions]
 junit = "4.13.2"
 kotlin = "2.1.10"
-logback = "1.5.17"
+logback = "1.5.18"
 kotest = "5.9.1"
 kotlin-logging = "7.0.5"
 npm-publish = "3.5.3"
