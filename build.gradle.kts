@@ -24,7 +24,11 @@ kotlin {
             moduleName = "kmplib"
             binaries.library()
             compilations["main"].packageJson {
-                customField("repository", mapOf("type" to "git", "url" to "https://github.com/zapodot/kmp-lib-poc.git"))
+                description = "Kotlin Multiplatform Library POC"
+                customField("repository", "github:zapodot/kmp-lib-poc")
+                customField("license", "MIT")
+                customField("homepage", "https://github.com/zapodot/kmp-lib-poc")
+                customField("author", mapOf("name" to "Sondre Eikanger Kvalø", "email" to "zapodot at gmail.com", "url" to "https://zapodot.org"))
             }
             browser {
                 testTask {
