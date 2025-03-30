@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotestMultiplatform)
-
+    id("maven-publish")
 }
 
 group = "org.zapodot"
@@ -46,6 +46,54 @@ kotlin {
     }
     tasks.named<Test>("jvmTest") {
         useJUnitPlatform()
+    }
+
+}
+
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/zapodot/kotlin-multiplatform-library")
+            credentials {
+                username = System.getenv("USERNAME")
+                password = System.getenv("TOKEN")
+            }
+        }
+    }
+
+    publications {
+        val kotlinMultiplatform by getting(MavenPublication::class) {
+            version = project.version.toString()
+            groupId = project.group.toString()
+            artifactId = project.name
+            pom {
+                name = "Kotlin Multiplatform Library POC"
+                description = "Proof of concept for Kotlin Multiplatform Library"
+                inceptionYear = "2025"
+                url = "https://github.com/zapodot/kmp-lib-poc"
+                scm {
+                    connection = "scm:git@github.com:zapodot/kmp-lib-poc.git"
+                    developerConnection = "scm:git@github.com:zapodot/kmp-lib-poc.git"
+                    url = "https://github.com/zapodot/kmp-lib-poc"
+                }
+                licenses {
+                    license {
+                        name = "MIT License"
+                        url = "https://opensource.org/licenses/MIT"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "zapodot"
+                        name = "Sondre Eikanger Kvalø"
+                        email = "zapodot at gmail.com"
+                    }
+                }
+            }
+
+        }
     }
 
 }
