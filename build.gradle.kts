@@ -6,7 +6,6 @@ plugins {
 }
 
 group = "org.zapodot"
-version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -56,7 +55,12 @@ kotlin {
     tasks.named<Test>("jvmTest") {
         useJUnitPlatform()
     }
-
+    tasks.named<Jar>("jvmJar") {
+        manifest {
+            attributes["Implementation-Title"] = project.name
+            attributes["Implementation-Version"] = project.version
+        }
+    }
 }
 
 npmPublish {
