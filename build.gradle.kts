@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotestMultiplatform)
+    alias(libs.plugins.npmPublish)
     id("maven-publish")
 }
 
@@ -21,6 +22,10 @@ kotlin {
         }
         js(IR) {
             moduleName = "kmplib"
+            binaries.library()
+            compilations["main"].packageJson {
+                customField("repository", mapOf("type" to "git", "url" to "https://github.com/zapodot/kmp-lib-poc.git"))
+            }
             browser {
                 testTask {
                     useKarma {
@@ -50,6 +55,13 @@ kotlin {
 
 }
 
+npmPublish {
+    registries {
+        github {
+            authToken = System.getenv("TOKEN")
+        }
+    }
+}
 
 publishing {
     repositories {
