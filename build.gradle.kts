@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -64,9 +65,6 @@ kotlin {
             }
         }
     }
-    tasks.named<Test>("jvmTest") {
-        useJUnitPlatform()
-    }
     tasks.named<Jar>("jvmJar") {
         manifest {
             attributes["Implementation-Title"] = project.name
@@ -74,12 +72,34 @@ kotlin {
         }.with(copySpec { from("${project.rootDir}/LICENSE") })
     }
 }
+// Tests
+tasks {
+    withType<Test> {
+        useJUnitPlatform()
+        testLogging {
+            showStandardStreams = true
+            showExceptions = true
+            exceptionFormat = TestExceptionFormat.FULL
+        }
+    }
+}
+
 // Docs
 tasks {
     register<Jar>("dokkaJar") {
         from(dokkaHtml)
         dependsOn(dokkaHtml)
         archiveClassifier.set("javadoc")
+    }
+    withType<Jar> {
+        metaInf.with(copySpec {
+            from("${project.rootDir}/LICENSE")
+        })
+    }
+    val jvmJar by getting(Jar::class) {
+        manifest {
+            attributes("Automatic-Module-Name" to "org.zapodot.kmplibpoc")
+        }
     }
 }
 
