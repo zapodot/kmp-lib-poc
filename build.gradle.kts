@@ -1,8 +1,13 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotestMultiplatform)
     alias(libs.plugins.npmPublish)
+    alias(libs.plugins.dokka)
     id("maven-publish")
+    signing
 }
 
 group = "org.zapodot"
@@ -10,7 +15,11 @@ group = "org.zapodot"
 repositories {
     mavenCentral()
 }
-
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+    }
+}
 kotlin {
     jvmToolchain(21)
     targets {
@@ -40,6 +49,7 @@ kotlin {
         }
     }
     sourceSets {
+        val commonMain by getting {}
         val commonTest by getting {
             dependencies {
                 implementation(libs.kotest.framework.engine)
@@ -48,6 +58,8 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
+                implementation(libs.kotest.framework.engine)
+                implementation(libs.kotest.assertions)
                 implementation(libs.kotest.runner.junit5)
             }
         }
@@ -59,7 +71,15 @@ kotlin {
         manifest {
             attributes["Implementation-Title"] = project.name
             attributes["Implementation-Version"] = project.version
-        }
+        }.with(copySpec { from("${project.rootDir}/LICENSE") })
+    }
+}
+// Docs
+tasks {
+    register<Jar>("dokkaJar") {
+        from(dokkaHtml)
+        dependsOn(dokkaHtml)
+        archiveClassifier.set("javadoc")
     }
 }
 
@@ -83,12 +103,12 @@ publishing {
         }
     }
 
-    publications {
-        val kotlinMultiplatform by getting(MavenPublication::class) {
-            version = project.version.toString()
-            groupId = project.group.toString()
-            artifactId = project.name
+    publications.withType<MavenPublication> {
             pom {
+                version = project.version.toString()
+                groupId = project.group.toString()
+                artifactId = project.name
+
                 name = "Kotlin Multiplatform Library POC"
                 description = "Proof of concept for Kotlin Multiplatform Library"
                 inceptionYear = "2025"
@@ -112,8 +132,30 @@ publishing {
                     }
                 }
             }
+        artifact(tasks["dokkaJar"])
 
-        }
     }
 
+}
+
+// Signing
+signing {
+    useInMemoryPgpKeys(
+        System.getenv("GPG_PRIVATE_KEY"),
+        System.getenv("GPG_PRIVATE_KEY_PASSPHRASE")
+    )
+    sign(publishing.publications)
+}
+
+// Gradle wrapper
+tasks {
+    // see https://docs.gradle.org/current/userguide/gradle_wrapper.html#customizing_wrapper
+    wrapper {
+        distributionType = Wrapper.DistributionType.ALL
+    }
+}
+
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    val signingTasks = tasks.withType<Sign>()
+    mustRunAfter(signingTasks)
 }
